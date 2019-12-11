@@ -19,7 +19,7 @@ $ sbt publishLocal
 
 Add this line in your project build.sbt file :
 ```scala
-libraryDependencies ++= Seq("org.armadeus" %% "chisArmadeus" % "0.1")
+libraryDependencies ++= Seq("org.armadeus" %% "chisarmadeus" % "0.1")
 ```
 
 
