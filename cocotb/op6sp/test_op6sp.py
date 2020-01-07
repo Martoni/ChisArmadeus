@@ -24,6 +24,7 @@ from cocotb.binary import BinaryValue
 
 from cocomod.wishbone.monitor import WishboneSlave
 from cocotbext.imxeim.driver import EIMMaster
+from cocotbext.imxeim.driver import EIMOp
 
 class Eim2Wishbone(object):
     """
@@ -72,7 +73,11 @@ class Eim2Wishbone(object):
 
 @cocotb.test()#skip=True)
 def test_simple(dut):
-    eim = Eim2Wishbone(dut)
+    eim2wb = Eim2Wishbone(dut)
     dut.log.info("reset bus")
-    yield eim.reset()
+    yield eim2wb.reset()
+
+    eimRes = yield eim2wb.eim.send_cycle([EIMOp(2), EIMOp(3), EIMOp(0), EIMOp(1)])
+
+
     yield Timer(1, units="us")
