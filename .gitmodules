@@ -1,0 +1,6 @@
+[submodule "cocotb/cocomod-wishbone"]
+	path = cocotb/cocomod-wishbone
+	url = https://github.com/wallento/cocomod-wishbone
+[submodule "cocotb/cocotbext-imxeim"]
+	path = cocotb/cocotbext-imxeim
+	url = https://github.com/Martoni/cocotbext-imxeim
