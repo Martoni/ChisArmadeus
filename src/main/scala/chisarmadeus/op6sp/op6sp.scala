@@ -6,15 +6,15 @@ import chisel3.util._
 import wbplumbing.WbMaster
 
 class Imx6ulEim extends Bundle {
-  /* daIn/daOut/daEn should be fusioned with triStateBuffer
+  /* dain/daout/daen should be fusioned with triStateBuffer
    * on Top RawModule component */
-  val daIn  = Input(UInt(16.W))
-  val daOut = Output(UInt(16.W))
-  val daEn = Output(Bool())
+  val dain  = Input(UInt(16.W))
+  val daout = Output(UInt(16.W))
+  val daen = Output(Bool())
 
   val lba = Input(Bool())
   val rw = Input(Bool())
-  val cs0 = Input(Bool())
+  val cs = Input(Bool())
 
   val eb = Input(UInt(2.W))
   val oe = Input(Bool())
@@ -29,22 +29,24 @@ class Eim2Wishbone extends Module {
   val addressReg = RegInit(0.U(16.W))
 
   io.wbm.adr_o := addressReg
-  io.wbm.dat_o := io.eim.daIn
-  io.eim.daOut := io.wbm.dat_i
+  io.wbm.dat_o := io.eim.dain
+  io.eim.daout := io.wbm.dat_i
 
+  /* Update address register */
   when(!io.eim.lba){
-    addressReg := io.eim.daIn
+    addressReg := io.eim.dain
   }
-  io.eim.daEn := false.B
+
+  io.eim.daen := false.B
   io.wbm.we_o := false.B
   io.wbm.stb_o := false.B
   io.wbm.cyc_o := false.B
-  when(!io.eim.cs0 && !io.wbm.ack_i){
+  when(!io.eim.cs && !io.wbm.ack_i){
     io.wbm.stb_o := true.B
     io.wbm.cyc_o := true.B
     when(!io.eim.rw){ // reading
-      io.eim.daEn := true.B
-      io.eim.daOut := io.wbm.dat_i
+      io.eim.daen := true.B
+      io.eim.daout := io.wbm.dat_i
     }.otherwise{ // writing
       io.wbm.we_o := true.B
     }

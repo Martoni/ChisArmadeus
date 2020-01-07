@@ -4,3 +4,6 @@
 [submodule "cocotb/cocotbext-imxeim"]
 	path = cocotb/cocotbext-imxeim
 	url = https://github.com/Martoni/cocotbext-imxeim
+[submodule "cocotb/chisverilogutils"]
+	path = cocotb/chisverilogutils
+	url = https://github.com/Martoni/chisverilogutils.git

@@ -40,7 +40,7 @@ clean::
 
 else
 
-TOPLEVEL=
+TOPLEVEL=Eim2Wishbone
 
 ifeq ($(OS),Msys)
 WPWD=$(shell sh -c 'pwd -W')
@@ -51,7 +51,7 @@ endif
 PWD=$(shell pwd)
 
 VERILOG_SOURCES = $(PWD)/$(TOPLEVEL)Cocotb.v
-MODULE=test_wbgpio
+MODULE=test_op6sp
 
 include $(shell cocotb-config --makefiles)/Makefile.inc
 include $(shell cocotb-config --makefiles)/Makefile.sim
@@ -61,8 +61,8 @@ endif
 $(PWD)/$(TOPLEVEL)Cocotb.v: $(PWD)/../../$(TOPLEVEL).v
 	python $(COCOTBIFY) -v $(PWD)/../../$(TOPLEVEL).v -o $(PWD)/$(TOPLEVEL)Cocotb.v
 
-$(PWD)/../../$(TOPLEVEL).v: ../../src/main/scala/gpio/wbgpio.scala
-	cd $(PWD)/../../;sbt "runMain gpio.WbGpio"
+$(PWD)/../../$(TOPLEVEL).v: ../../src/main/scala/chisarmadeus/op6sp/op6sp.scala
+	cd $(PWD)/../../;sbt "runMain chisarmadeus.op6sp.Eim2Wishbone"
 
 cleanverilog:
 	-rm $(PWD)/../$(TOPLEVEL).v
