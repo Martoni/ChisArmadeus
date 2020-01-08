@@ -26,6 +26,8 @@ class Eim2Wishbone extends Module {
     val wbm = new WbMaster(dwidth=16, awidth=16, iname = "Eim2Wishbone")
   })
 
+  /* ack_i not supported by eim */
+
   val addressReg = RegInit(0.U(16.W))
 
   io.wbm.adr_o := addressReg
@@ -41,7 +43,7 @@ class Eim2Wishbone extends Module {
   io.wbm.we_o := false.B
   io.wbm.stb_o := false.B
   io.wbm.cyc_o := false.B
-  when(!io.eim.cs && !io.wbm.ack_i){
+  when(!io.eim.cs){
     io.wbm.stb_o := true.B
     io.wbm.cyc_o := true.B
     when(!io.eim.rw){ // reading

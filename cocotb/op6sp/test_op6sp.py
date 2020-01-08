@@ -11,6 +11,7 @@ import sys
 import cocotb
 import logging
 from cocotb import SimLog
+from cocotb.scoreboard import Scoreboard
 from cocotb.triggers import Timer
 from cocotb.result import raise_error
 from cocotb.result import TestError
@@ -77,7 +78,13 @@ def test_simple(dut):
     dut.log.info("reset bus")
     yield eim2wb.reset()
 
-    eimRes = yield eim2wb.eim.send_cycle([EIMOp(2), EIMOp(3), EIMOp(0), EIMOp(1)])
+    # reading 4 registers
+    eimRes = yield eim2wb.eim.send_cycle([EIMOp(v) for v in range(4)])
+    eim2wb.log.info(f"read {[v.datrd for v in eimRes]}")
 
+    # writing 4 registers
+    eimRes = yield eim2wb.eim.send_cycle([EIMOp(v, v + 0xBAF0) for v in range(4)])
+    eim2wb.log.info(f"write {[v.datwr for v in eimRes]}")
 
     yield Timer(1, units="us")
+    dut.log.info(f"wishbone receive buffer {[v for v in eim2wb.wbm._res_buf]}")
