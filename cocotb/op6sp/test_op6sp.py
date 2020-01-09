@@ -10,6 +10,7 @@ import os
 import sys
 import cocotb
 import logging
+from itertools import repeat
 from cocotb import SimLog
 from cocotb.scoreboard import Scoreboard
 from cocotb.triggers import Timer
@@ -44,6 +45,7 @@ class Eim2Wishbone(object):
         if sys.version_info[0] < 3:
             raise Exception("Must be using Python 3")
         self._dut = dut
+        self._mem = {}
         self.log = SimLog("Eim2Wishbone.{}".format(self.__class__.__name__))
         self._dut._log.setLevel(self.LOGLEVEL)
         self.log.setLevel(self.LOGLEVEL)
@@ -52,6 +54,8 @@ class Eim2Wishbone(object):
         self.log.info("instanciate slave")
         self.wbm = WishboneSlave(dut, "io_wbm", dut.clock,
                           width=16,   # size of data bus
+                          waitreplygen=repeat(3),
+                          datgen=self._memory(),
                           signals_dict={"cyc":  "cyc_o",
                                       "stb":  "stb_o",
                                       "we":   "we_o",
@@ -61,6 +65,24 @@ class Eim2Wishbone(object):
                                       "ack":  "ack_i" })
 
         self.eim = EIMMaster(dut, "io_eim", dut.clock, width=16)
+
+    # manage accesses like a memory
+    def _memory(self):
+        mem = {
+                0: 0xcafe,
+                1: 0xdeca,
+                2: 0xcaca,
+                3: 0xbebe,
+        }
+        while True:
+            adr = self.wbm.bus.adr.value.integer
+            self.log.info(f"adr : {adr}")
+            yield mem.get(adr, 0xffff)
+
+
+    def log_transaction(self, transaction):
+        self.log.info("callbacks {}".format(transaction))
+
 
     @cocotb.coroutine
     def reset(self):
@@ -86,5 +108,21 @@ def test_simple(dut):
     eimRes = yield eim2wb.eim.send_cycle([EIMOp(v, v + 0xBAF0) for v in range(4)])
     eim2wb.log.info(f"write {[v.datwr for v in eimRes]}")
 
+    # reading 4 registers
+    eimRes = yield eim2wb.eim.send_cycle([EIMOp(v) for v in range(4)])
+    eim2wb.log.info(f"read {[v.datrd for v in eimRes]}")
+
+
+    eim2wb.log.info("Monitor reads :")
+    for transaction in eim2wb.wbm._recvQ:
+        for wbres in transaction:
+            eim2wb.wbm.log.info(f"{wbres.to_dict()}")
+
     yield Timer(1, units="us")
-    dut.log.info(f"wishbone receive buffer {[v for v in eim2wb.wbm._res_buf]}")
+
+@cocotb.test()#skip=True)
+def test_write(dut):
+    msg = "TODO: check good write"
+    dut.log.error(msg)
+    raise TestError(msg)
+    yield Timer(0)
