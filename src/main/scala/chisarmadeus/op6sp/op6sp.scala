@@ -29,30 +29,32 @@ class Eim2Wishbone extends Module {
   /* ack_i not supported by eim */
 
   val addressReg = RegInit(0.U(16.W))
+  val writeData = RegInit(0.U(16.W))
 
-  io.wbm.adr_o := addressReg
-  io.wbm.dat_o := io.eim.dain
-  io.eim.daout := io.wbm.dat_i
+  val write = Wire(Bool())
+  val read  = Wire(Bool())
+  val strobe= Wire(Bool())
+
 
   /* Update address register */
   when(!io.eim.lba){
-    addressReg := io.eim.dain
+    addressReg := 0.U(1.W) ## io.eim.dain(15, 1)
+  }.otherwise{
+    writeData := io.eim.dain
   }
 
-  io.eim.daen := false.B
-  io.wbm.we_o := false.B
-  io.wbm.stb_o := false.B
-  io.wbm.cyc_o := false.B
-  when(!io.eim.cs){
-    io.wbm.stb_o := true.B
-    io.wbm.cyc_o := true.B
-    when(!io.eim.rw){ // reading
-      io.eim.daen := true.B
-      io.eim.daout := io.wbm.dat_i
-    }.otherwise{ // writing
-      io.wbm.we_o := true.B
-    }
-  }
+  strobe := !io.eim.cs
+  write  := !io.eim.cs && !io.eim.rw
+  read   := !io.eim.cs && io.eim.rw
+
+  io.wbm.adr_o := addressReg
+  io.wbm.dat_o := Mux(write, writeData, 0.U)
+  io.wbm.stb_o := strobe
+  io.wbm.we_o  := write
+  io.wbm.cyc_o := strobe
+
+  io.eim.daout := io.wbm.dat_i
+  io.eim.daen := Mux(read, true.B, false.B)
 
 }
 
